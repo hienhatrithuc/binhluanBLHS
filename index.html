@@ -87,7 +87,42 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
-  </style>
+  
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      overflow-x: hidden;
+    }
+    .article {
+      width: 100%;
+      box-sizing: border-box;
+      word-wrap: break-word;
+    }
+    .search-bar, .search-input-container, .results-info {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .search-input-container input {
+      width: 100%;
+      max-width: 100%;
+    }
+    @media screen and (max-width: 768px) {
+      .search-buttons {
+        flex-wrap: wrap;
+      }
+      .search-buttons button {
+        font-size: 14px;
+        padding: 6px 8px;
+      }
+      .search-input-container {
+        flex-direction: column;
+        align-items: stretch;
+        margin-top: 5px;
+      }
+    }
+</style>
 </head>
 <body>
 

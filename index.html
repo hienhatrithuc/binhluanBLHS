@@ -7,89 +7,79 @@
   <title>Tra cứu BLHS & Bình luận</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
       margin: 0;
       padding: 0;
-      background: #f2f2f2;
-      max-width: 100vw;
-      overflow-x: hidden;
+      color: #333;
     }
     .search-bar {
       position: sticky;
       top: 0;
-      background: #fff;
+      background: white;
       padding: 10px;
       display: flex;
-      flex-wrap: nowrap;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 999;
-      gap: 10px;
-    }
-    .search-buttons {
-      display: flex;
-      gap: 5px;
-      flex-shrink: 0;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      z-index: 10;
     }
     .search-buttons button {
-      background: #007bff;
-      color: #fff;
+      background: #0066cc;
+      color: white;
       border: none;
       padding: 6px 10px;
       border-radius: 5px;
       font-size: 16px;
-      cursor: pointer;
     }
     .search-input-container {
-      flex-grow: 1;
+      flex: 1;
       display: flex;
       align-items: center;
       border: 1px solid #ccc;
-      border-radius: 25px;
+      border-radius: 20px;
       padding: 5px 10px;
-      background: #f9f9f9;
+      background: #fff;
     }
     .search-input-container input {
       border: none;
       outline: none;
-      background: transparent;
-      flex-grow: 1;
-      padding: 8px;
+      flex: 1;
       font-size: 16px;
     }
     .search-input-container button {
       background: none;
       border: none;
       cursor: pointer;
-      font-size: 20px;
-      margin-left: 5px;
+      font-size: 18px;
     }
     .results-info {
       padding: 10px;
-      background: #eee;
       font-size: 14px;
+      background: #eaeaea;
     }
     .article {
+      display: none;
       background: #fff;
       margin: 10px;
       padding: 15px;
-      border-radius: 10px;
+      border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-      word-break: break-word;
     }
     .article h3 {
-      margin-top: 0;
-      color: #333;
+      margin: 0 0 10px;
     }
     .highlight {
       background-color: yellow;
     }
-    pre {
-      white-space: pre-wrap;
-      word-break: break-word;
-      margin: 0;
+    .list-item {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+    }
+    .list-item:hover {
+      background-color: #f1f1f1;
     }
   </style>
 </head>
@@ -102,12 +92,13 @@
     <button onclick="goNext()">&#62;</button>
   </div>
   <div class="search-input-container">
-    <input type="text" id="searchInput" placeholder="Nhập từ khoá...">
+    <input type="text" id="searchInput" placeholder="Nhập từ khóa..." oninput="searchArticles()">
     <button onclick="searchArticles()">🔍</button>
   </div>
 </div>
 
-<div class="results-info" id="resultsInfo">Tổng số điều: 0</div>
+<div class="results-info" id="resultsInfo">Danh sách các điều:</div>
+<div id="lawList"></div>
 <div id="articles"></div>
 
 <script>
@@ -116,14 +107,27 @@ let filteredData = [];
 let currentIndex = 0;
 
 async function fetchData() {
-  try {
-    const res = await fetch('binh_luan_blhs_tach_dieu.json');
-    data = await res.json();
-    filteredData = data;
-    renderArticles();
-  } catch (e) {
-    document.getElementById('resultsInfo').innerText = "Không thể tải dữ liệu JSON.";
-  }
+  const res = await fetch('binh_luan_blhs_tach_dieu.json');
+  data = await res.json();
+  filteredData = data;
+  renderList();
+  renderArticles();
+}
+
+function renderList() {
+  const list = document.getElementById('lawList');
+  list.innerHTML = '';
+  data.forEach((item, index) => {
+    const div = document.createElement('div');
+    div.className = 'list-item';
+    div.innerText = item.dieu;
+    div.onclick = () => {
+      currentIndex = index;
+      renderArticles();
+      scrollToCurrent();
+    };
+    list.appendChild(div);
+  });
 }
 
 function renderArticles() {
@@ -132,17 +136,20 @@ function renderArticles() {
   filteredData.forEach((item, index) => {
     const article = document.createElement('div');
     article.className = 'article';
-    article.innerHTML = `<h3>${item.dieu}</h3><pre>${highlightKeywords(item.noidung)}</pre>`;
     article.dataset.index = index;
+    article.innerHTML = `<h3>${item.dieu}</h3><pre>${highlightKeywords(item.noidung)}</pre>`;
     container.appendChild(article);
   });
-  document.getElementById('resultsInfo').innerText = `Tổng số kết quả: ${filteredData.length}`;
+
+  // hiển thị kết quả nếu có tìm kiếm
+  document.querySelectorAll('.article').forEach(el => el.style.display = filteredData.length > 0 ? 'block' : 'none');
+  document.getElementById('resultsInfo').innerText = filteredData.length === data.length ? "Danh sách các điều:" : `Tổng số kết quả: ${filteredData.length}`;
 }
 
 function highlightKeywords(text) {
   const keyword = document.getElementById('searchInput').value.trim();
   if (!keyword) return text;
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\$&')})`, 'gi');
+  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\]/g, '\$&')})`, 'gi');
   return text.replace(regex, '<span class="highlight">$1</span>');
 }
 
@@ -150,6 +157,7 @@ function searchArticles() {
   const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
   if (!keyword) {
     filteredData = data;
+    renderList();
   } else {
     filteredData = data.filter(item =>
       item.dieu.toLowerCase().includes(keyword) ||
@@ -159,6 +167,13 @@ function searchArticles() {
   currentIndex = 0;
   renderArticles();
   scrollToCurrent();
+}
+
+function scrollToCurrent() {
+  const article = document.querySelector(`.article[data-index='${currentIndex}']`);
+  if (article) {
+    article.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function goTop() {
@@ -176,13 +191,6 @@ function goNext() {
   if (currentIndex < filteredData.length - 1) {
     currentIndex++;
     scrollToCurrent();
-  }
-}
-
-function scrollToCurrent() {
-  const article = document.querySelector(`.article[data-index='${currentIndex}']`);
-  if (article) {
-    article.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 

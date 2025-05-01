@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tra cứu Bình luận Bộ luật Hình sự</title>
+  <title>Tra cứu BLHS & Bình luận</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -142,7 +142,7 @@ function renderArticles() {
 function highlightKeywords(text) {
   const keyword = document.getElementById('searchInput').value.trim();
   if (!keyword) return text;
-  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\]/g, '\$&')})`, 'gi');
+  const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\$&')})`, 'gi');
   return text.replace(regex, '<span class="highlight">$1</span>');
 }
 
